@@ -119,7 +119,8 @@ function removeMergeNotifs() {
 	});
 }
 
-const { randomUUID } = new ShortUniqueId({ length: 6 });
+const _uid = new (ShortUniqueId as any)({ length: 6 });
+const randomUUID = (): string => _uid.randomUUID();
 
 interface driveValues {
 	refreshToken: string;
@@ -1045,7 +1046,7 @@ export default class driveSyncPlugin extends Plugin {
 		var metaExists = metaPattern.test(content);
 		var driveDataExists = driveDataPattern.test(content);
 		
-		const lastEditor = this.app.workspace.activeEditor;
+		const lastEditor = (this.app.workspace as any).activeEditor;
 
 		if (metaExists) {
 			if (driveDataExists) {
