@@ -365,6 +365,19 @@ export default class driveSyncPlugin extends Plugin {
 				);
 			}
 		} catch (err) {
+			if (err.message.includes("getFilesList") && err.message.includes("404")) {
+				// Vault folder no longer exists in Google Drive
+				this.settings.vaultId = "";
+				this.settings.vaultInit = false;
+				await this.saveSettings();
+				this.completingPendingSync = false;
+				await this.writeToErrorLogFile(err);
+				new Notice(
+					"ERROR: Vault folder not found in Google Drive. Please re-initialize vault from plugin settings.",
+					8000
+				);
+				return;
+			}
 			if (err.message.includes("404")) {
 				this.pendingSyncItems.shift();
 				await this.writeToPendingSyncFile();
