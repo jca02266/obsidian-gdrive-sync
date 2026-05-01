@@ -1386,7 +1386,7 @@ export default class driveSyncPlugin extends Plugin {
 				this.settings.accessToken = res.access_token;
 				this.settings.accessTokenExpiryTime = res.expiry_date;
 				this.settings.validToken = true;
-				var folders = await getFoldersList(this.settings.accessToken); // look for obsidian folder
+				var folders = await (getFoldersList as Function)(this.settings.accessToken, "root"); // look for obsidian folder in Drive root only
 				var reqFolder = folders.filter(
 					(folder: any) => folder.name == "obsidian"
 				);
