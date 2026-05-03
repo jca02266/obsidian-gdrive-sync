@@ -1,0 +1,14 @@
+{
+  "name": "obsidian-gdrive-sync-backend",
+  "version": "1.0.0",
+  "description": "OAuth backend for obsidian-gdrive-sync plugin",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.0",
+    "express": "^4.19.0"
+  }
+}
