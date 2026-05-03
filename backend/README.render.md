@@ -22,10 +22,12 @@
 | 項目 | 値 |
 |---|---|
 | **Name** | `obsidian-gdrive-sync-backend` |
-| **Root Directory** | `backend` |
-| **Runtime** | `Node` |
+| **Language** | `Node` |
+| **Branch** | `master` |
+| **Region** | 任意（例: `Oregon (US West)`） |
+| **Root Directory** | `backend`（空欄なので手入力が必要） |
 | **Build Command** | `npm install` |
-| **Start Command** | `node server.js` |
+| **Start Command** | `node server.js`（`node main.js` と自動入力されるので修正が必要） |
 | **Instance Type** | `Free` |
 
 ## Step 4: 環境変数の設定
@@ -77,17 +79,18 @@ https://obsidian-gdrive-sync-backend.onrender.com/auth/obsidian
 
 ## Step 7: プラグインの設定変更
 
-Obsidian の vault 内にある `.obsidian/plugins/obsidian-gdrive-sync/data.json` を開き、
-以下の2項目を Render の URL に変更する。
+`data.json` を直接編集する必要はない。Obsidian の設定画面から変更できる。
 
-```json
-{
-  "fetchRefreshTokenURL": "https://obsidian-gdrive-sync-backend.onrender.com/auth/obsidian",
-  "refreshAccessTokenURL": "https://obsidian-gdrive-sync-backend.onrender.com/auth/obsidian/refresh-token"
-}
-```
+1. Obsidian → 設定 → コミュニティプラグイン → **obsidian-gdrive-sync** の設定を開く
+2. 下にスクロールして認証サーバーの URL 入力欄を見つける
+3. 以下の2項目を Render の URL に変更する:
 
-変更後、Obsidian でプラグインを再読み込みして認証をやり直す。
+| 項目 | 値 |
+|---|---|
+| fetch refresh token URL | `https://obsidian-gdrive-sync-backend.onrender.com/auth/obsidian` |
+| refresh access token URL | `https://obsidian-gdrive-sync-backend.onrender.com/auth/obsidian/refresh-token` |
+
+4. 同じ設定画面の認証リンクから再ログインする
 
 ## 注意事項
 
