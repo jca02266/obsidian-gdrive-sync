@@ -1168,6 +1168,16 @@ export default class driveSyncPlugin extends Plugin {
 		);
 	};
 
+	isNetworkError = (err: unknown): boolean => {
+		const msg = String(err);
+		return (
+			msg.includes("UnknownHostException") ||
+			msg.includes("Failed to fetch") ||
+			msg.includes("No address associated with hostname") ||
+			msg.includes("NetworkError")
+		);
+	};
+
 	writeToErrorLogFile = async (log: Error) => {
 		if (!this.app.workspace.layoutReady || !this.layoutReady) {
 			// Workspace is still loading, do nothing
@@ -1179,7 +1189,12 @@ export default class driveSyncPlugin extends Plugin {
 		}
 		let errorLogFile =
 			this.app.vault.getAbstractFileByPath(ERROR_LOG_FILE_NAME);
-		console.log(log.stack, "logging");
+
+		const networkError = this.isNetworkError(log);
+		const logBody = networkError
+			? `${log.name}-${log.message}`
+			: `${log.name}-${log.message}-${log.stack}`;
+		console.log(networkError ? log.message : log.stack, "logging");
 
 		let content: string;
 
@@ -1190,18 +1205,14 @@ export default class driveSyncPlugin extends Plugin {
 					: "";
 				await this.app.vault.modify(
 					errorLogFile,
-					`${content}\n\n${new Date().toString()}-${log.name}-${
-						log.message
-					}-${log.stack}`
+					`${content}\n\n${new Date().toString()}-${logBody}`
 				);
 				this.errorLoggingForTheFirstTimeInThisSession = false;
 			} else {
 				try {
 					await this.app.vault.create(
 						ERROR_LOG_FILE_NAME,
-						`${new Date().toString()}-${log.name}-${log.message}-${
-							log.stack
-						}`
+						`${new Date().toString()}-${logBody}`
 					);
 				} catch (err) {
 					console.log(
