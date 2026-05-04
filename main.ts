@@ -10,6 +10,7 @@ import {
 	TFile,
 	FileSystemAdapter,
 	EditorPosition,
+	Platform,
 } from "obsidian";
 
 import axios from "axios";
@@ -389,6 +390,7 @@ export default class driveSyncPlugin extends Plugin {
 		if (pendingSyncItems.length) {
 			this.statusBarItem.setAttribute("aria-label", "Sync complete!");
 			this.statusBarItem.classList.replace("sync_icon", "sync_icon_still");
+			if (Platform.isMobile) new Notice("Sync complete!", 2000);
 			this.finalNamesForFileID.clear();
 			await this.writeToPendingSyncFile();
 			await this.writeToVerboseLogFile(
@@ -661,8 +663,10 @@ export default class driveSyncPlugin extends Plugin {
 
 				if (initialDownloadLength < totalCloudFiles) {
 					this.statusBarItem.setAttribute("aria-label", `Resuming download: ${initialDownloadLength} files remaining`);
+					if (Platform.isMobile) new Notice(`Resuming download: ${initialDownloadLength} files remaining`);
 				} else {
 					this.statusBarItem.setAttribute("aria-label", "Downloading missing files...");
+					if (Platform.isMobile) new Notice("Downloading missing files...");
 				}
 				this.statusBarItem.classList.replace("sync_icon_still", "sync_icon");
 
@@ -734,6 +738,7 @@ export default class driveSyncPlugin extends Plugin {
 				}
 				this.statusBarItem.setAttribute("aria-label", "Download complete");
 				this.statusBarItem.classList.replace("sync_icon", "sync_icon_still");
+				if (Platform.isMobile) new Notice("Download complete", 2000);
 				// new Notice(
 				// 	"Sorry to make you wait for so long. Please continue with your work",
 				// 	5000

@@ -2633,6 +2633,8 @@ var driveSyncPlugin = class extends import_obsidian2.Plugin {
       if (pendingSyncItems.length) {
         this.statusBarItem.setAttribute("aria-label", "Sync complete!");
         this.statusBarItem.classList.replace("sync_icon", "sync_icon_still");
+        if (import_obsidian2.Platform.isMobile)
+          new import_obsidian2.Notice("Sync complete!", 2e3);
         this.finalNamesForFileID.clear();
         await this.writeToPendingSyncFile();
         await this.writeToVerboseLogFile("LOG: completeAllPendingSyncs: Finished allpendingSyncs");
@@ -2814,8 +2816,12 @@ var driveSyncPlugin = class extends import_obsidian2.Plugin {
           const alreadyDownloaded = totalCloudFiles - initialDownloadLength;
           if (initialDownloadLength < totalCloudFiles) {
             this.statusBarItem.setAttribute("aria-label", `Resuming download: ${initialDownloadLength} files remaining`);
+            if (import_obsidian2.Platform.isMobile)
+              new import_obsidian2.Notice(`Resuming download: ${initialDownloadLength} files remaining`);
           } else {
             this.statusBarItem.setAttribute("aria-label", "Downloading missing files...");
+            if (import_obsidian2.Platform.isMobile)
+              new import_obsidian2.Notice("Downloading missing files...");
           }
           this.statusBarItem.classList.replace("sync_icon_still", "sync_icon");
           this.settings.refresh = true;
@@ -2867,6 +2873,8 @@ var driveSyncPlugin = class extends import_obsidian2.Plugin {
           }
           this.statusBarItem.setAttribute("aria-label", "Download complete");
           this.statusBarItem.classList.replace("sync_icon", "sync_icon_still");
+          if (import_obsidian2.Platform.isMobile)
+            new import_obsidian2.Notice("Download complete", 2e3);
           this.settings.refresh = false;
         }
         if (!this.attachmentTrackingInitializationComplete) {
