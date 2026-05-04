@@ -354,11 +354,8 @@ export default class driveSyncPlugin extends Plugin {
 				}
 				this.pendingSyncItems.shift();
 				await this.writeToPendingSyncFile();
-				new Notice(
-					`Synced ${pendingSyncItems.indexOf(item) + 1}/${
-						pendingSyncItems.length
-					} changes`,
-				);
+				this.statusBarItem.setAttribute("aria-label", `Synced ${pendingSyncItems.indexOf(item) + 1}/${pendingSyncItems.length} changes`);
+				this.statusBarItem.classList.replace("sync_icon_still", "sync_icon");
 				await this.writeToVerboseLogFile(
 					"LOG: completeAllPendingSyncs: Finished one operation",
 				);
@@ -390,7 +387,8 @@ export default class driveSyncPlugin extends Plugin {
 			await this.writeToErrorLogFile(err);
 		}
 		if (pendingSyncItems.length) {
-			new Notice("Sync complete!");
+			this.statusBarItem.setAttribute("aria-label", "Sync complete!");
+			this.statusBarItem.classList.replace("sync_icon", "sync_icon_still");
 			this.finalNamesForFileID.clear();
 			await this.writeToPendingSyncFile();
 			await this.writeToVerboseLogFile(
@@ -662,10 +660,11 @@ export default class driveSyncPlugin extends Plugin {
 				const alreadyDownloaded = totalCloudFiles - initialDownloadLength;
 
 				if (initialDownloadLength < totalCloudFiles) {
-					new Notice(`Resuming download: ${initialDownloadLength} files remaining`, 4000);
+					this.statusBarItem.setAttribute("aria-label", `Resuming download: ${initialDownloadLength} files remaining`);
 				} else {
-					new Notice("Downloading missing files", 2500);
+					this.statusBarItem.setAttribute("aria-label", "Downloading missing files...");
 				}
+				this.statusBarItem.classList.replace("sync_icon_still", "sync_icon");
 
 				this.settings.refresh = true;
 				for (const dFile of toDownload) {
@@ -727,16 +726,14 @@ export default class driveSyncPlugin extends Plugin {
 						}
 						
 						let currentProgress = alreadyDownloaded + toDownload.indexOf(dFile) + 1;
-						new Notice(
-							`Sync progress: ${currentProgress}/${totalCloudFiles} files`,
-							1000,
-						);
+						this.statusBarItem.setAttribute("aria-label", `Sync progress: ${currentProgress}/${totalCloudFiles} files`);
 					} catch (fileErr) {
 						await this.writeToErrorLogFile(fileErr);
 						new Notice(`Failed to sync ${dFile}. Skipping...`, 2000);
 					}
 				}
-				new Notice("Download complete :)", 2500);
+				this.statusBarItem.setAttribute("aria-label", "Download complete");
+				this.statusBarItem.classList.replace("sync_icon", "sync_icon_still");
 				// new Notice(
 				// 	"Sorry to make you wait for so long. Please continue with your work",
 				// 	5000
@@ -810,7 +807,8 @@ export default class driveSyncPlugin extends Plugin {
 			this.writingFile = true;
 			this.currentlyUploading = newFile.path;
 
-			new Notice("Uploading new file to Google Drive!");
+			this.statusBarItem.setAttribute("aria-label", "Uploading file...");
+			this.statusBarItem.classList.replace("sync_icon_still", "sync_icon");
 
 			var content = await this.app.vault.read(newFile);
 
@@ -844,7 +842,8 @@ export default class driveSyncPlugin extends Plugin {
 			await this.refreshFilesListInDriveAndStoreInSettings();
 			this.currentlyUploading = null;
 
-			new Notice("Uploaded!");
+			this.statusBarItem.setAttribute("aria-label", "Uploaded!");
+			this.statusBarItem.classList.replace("sync_icon", "sync_icon_still");
 			await this.writeToVerboseLogFile("LOG: Exited uploadNewNotesFile");
 			return id;
 		} catch (err) {
@@ -1020,7 +1019,8 @@ export default class driveSyncPlugin extends Plugin {
 			await this.writeToVerboseLogFile(
 				"LOG: Entering uploadNewAttachment",
 			);
-			new Notice("Uploading new attachment!");
+			this.statusBarItem.setAttribute("aria-label", "Uploading attachment...");
+			this.statusBarItem.classList.replace("sync_icon_still", "sync_icon");
 			var buffer: any = await this.app.vault.readBinary(e);
 
 			this.currentlyUploading = e.path;
@@ -1053,7 +1053,8 @@ export default class driveSyncPlugin extends Plugin {
 			);
 
 			this.currentlyUploading = null;
-			new Notice("Uploaded!");
+			this.statusBarItem.setAttribute("aria-label", "Uploaded!");
+			this.statusBarItem.classList.replace("sync_icon", "sync_icon_still");
 			return id;
 		} catch (err) {
 			await this.notifyError();

@@ -2607,7 +2607,8 @@ var driveSyncPlugin = class extends import_obsidian2.Plugin {
           }
           this.pendingSyncItems.shift();
           await this.writeToPendingSyncFile();
-          new import_obsidian2.Notice(`Synced ${pendingSyncItems.indexOf(item) + 1}/${pendingSyncItems.length} changes`);
+          this.statusBarItem.setAttribute("aria-label", `Synced ${pendingSyncItems.indexOf(item) + 1}/${pendingSyncItems.length} changes`);
+          this.statusBarItem.classList.replace("sync_icon_still", "sync_icon");
           await this.writeToVerboseLogFile("LOG: completeAllPendingSyncs: Finished one operation");
         }
       } catch (err) {
@@ -2630,7 +2631,8 @@ var driveSyncPlugin = class extends import_obsidian2.Plugin {
         await this.writeToErrorLogFile(err);
       }
       if (pendingSyncItems.length) {
-        new import_obsidian2.Notice("Sync complete!");
+        this.statusBarItem.setAttribute("aria-label", "Sync complete!");
+        this.statusBarItem.classList.replace("sync_icon", "sync_icon_still");
         this.finalNamesForFileID.clear();
         await this.writeToPendingSyncFile();
         await this.writeToVerboseLogFile("LOG: completeAllPendingSyncs: Finished allpendingSyncs");
@@ -2811,10 +2813,11 @@ var driveSyncPlugin = class extends import_obsidian2.Plugin {
           const initialDownloadLength = toDownload.length;
           const alreadyDownloaded = totalCloudFiles - initialDownloadLength;
           if (initialDownloadLength < totalCloudFiles) {
-            new import_obsidian2.Notice(`Resuming download: ${initialDownloadLength} files remaining`, 4e3);
+            this.statusBarItem.setAttribute("aria-label", `Resuming download: ${initialDownloadLength} files remaining`);
           } else {
-            new import_obsidian2.Notice("Downloading missing files", 2500);
+            this.statusBarItem.setAttribute("aria-label", "Downloading missing files...");
           }
+          this.statusBarItem.classList.replace("sync_icon_still", "sync_icon");
           this.settings.refresh = true;
           for (const dFile of toDownload) {
             try {
@@ -2856,13 +2859,14 @@ var driveSyncPlugin = class extends import_obsidian2.Plugin {
                 }
               }
               let currentProgress = alreadyDownloaded + toDownload.indexOf(dFile) + 1;
-              new import_obsidian2.Notice(`Sync progress: ${currentProgress}/${totalCloudFiles} files`, 1e3);
+              this.statusBarItem.setAttribute("aria-label", `Sync progress: ${currentProgress}/${totalCloudFiles} files`);
             } catch (fileErr) {
               await this.writeToErrorLogFile(fileErr);
               new import_obsidian2.Notice(`Failed to sync ${dFile}. Skipping...`, 2e3);
             }
           }
-          new import_obsidian2.Notice("Download complete :)", 2500);
+          this.statusBarItem.setAttribute("aria-label", "Download complete");
+          this.statusBarItem.classList.replace("sync_icon", "sync_icon_still");
           this.settings.refresh = false;
         }
         if (!this.attachmentTrackingInitializationComplete) {
@@ -2913,7 +2917,8 @@ var driveSyncPlugin = class extends import_obsidian2.Plugin {
           return;
         this.writingFile = true;
         this.currentlyUploading = newFile.path;
-        new import_obsidian2.Notice("Uploading new file to Google Drive!");
+        this.statusBarItem.setAttribute("aria-label", "Uploading file...");
+        this.statusBarItem.classList.replace("sync_icon_still", "sync_icon");
         var content = await this.app.vault.read(newFile);
         var metaExists = metaPattern.test(content);
         var driveDataExists = driveDataPattern.test(content);
@@ -2933,7 +2938,8 @@ lastSync: ${new Date().toString()}
         this.cloudFiles.push(newFile.path);
         await this.refreshFilesListInDriveAndStoreInSettings();
         this.currentlyUploading = null;
-        new import_obsidian2.Notice("Uploaded!");
+        this.statusBarItem.setAttribute("aria-label", "Uploaded!");
+        this.statusBarItem.classList.replace("sync_icon", "sync_icon_still");
         await this.writeToVerboseLogFile("LOG: Exited uploadNewNotesFile");
         return id;
       } catch (err) {
@@ -3049,7 +3055,8 @@ lastSync: ${new Date().toString()}
       }
       try {
         await this.writeToVerboseLogFile("LOG: Entering uploadNewAttachment");
-        new import_obsidian2.Notice("Uploading new attachment!");
+        this.statusBarItem.setAttribute("aria-label", "Uploading attachment...");
+        this.statusBarItem.classList.replace("sync_icon_still", "sync_icon");
         var buffer = await this.app.vault.readBinary(e);
         this.currentlyUploading = e.path;
         this.cloudFiles.push(e.path);
@@ -3061,7 +3068,8 @@ lastSync: ${new Date().toString()}
         }
         let id = await uploadFile(this.settings.accessToken, e.path, buffer, this.settings.vaultId);
         this.currentlyUploading = null;
-        new import_obsidian2.Notice("Uploaded!");
+        this.statusBarItem.setAttribute("aria-label", "Uploaded!");
+        this.statusBarItem.classList.replace("sync_icon", "sync_icon_still");
         return id;
       } catch (err) {
         await this.notifyError();
