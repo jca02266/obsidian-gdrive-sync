@@ -657,75 +657,84 @@ export default class driveSyncPlugin extends Plugin {
 			);
 			/* download new files or files that were renamed */
 			if (toDownload.length) {
-				new Notice("Downloading missing files", 2500);
+				const totalCloudFiles = this.cloudFiles.length;
+				const initialDownloadLength = toDownload.length;
+				const alreadyDownloaded = totalCloudFiles - initialDownloadLength;
+
+				if (initialDownloadLength < totalCloudFiles) {
+					new Notice(`Resuming download: ${initialDownloadLength} files remaining`, 4000);
+				} else {
+					new Notice("Downloading missing files", 2500);
+				}
 
 				this.settings.refresh = true;
 				for (const dFile of toDownload) {
-					var id;
-					this.settings.filesList.map((file: any) => {
-						//console.log(file.name);
-
-						if (file.name == dFile) {
-							id = file.id;
-						}
-					});
-					//console.log(id, dFile);
-
-					var file = await getFile(this.settings.accessToken, id);
-					let isBinary =
-						file[0].split(".")[file[0].split(".").length - 1] !=
-						"md";
 					try {
-						await this.app.vault.createBinary(file[0], file[1]);
-						if (isBinary) {
-							let safeFilename = file[0].replace(/\//g, ".");
-							try {
-								await this.app.vault.create(
-									`${ATTACHMENT_TRACKING_FOLDER_NAME}/${safeFilename}`,
-									"",
-								);
-							} catch (err) {
-								await this.writeToVerboseLogFile(
-									`LOG: ${ATTACHMENT_TRACKING_FOLDER_NAME}/${safeFilename} could not be created`,
-								);
-								await this.writeToErrorLogFile(err);
+						var id: string = "";
+						this.settings.filesList.map((fileItem: any) => {
+							if (fileItem.name == dFile) {
+								id = fileItem.id;
 							}
-						}
-					} catch (err) {
-						await this.writeToVerboseLogFile(
-							"LOG: Couldn't create file directly, trying to create folder first...",
-						);
-						var path = file[0].split("/").slice(0, -1).join("/");
-						// console.log(path);
+						});
 
-						try {
-							await this.app.vault.createFolder(path);
-						} catch (err) {
-							if (err.message.includes("Folder already exists")) {
-								await this.writeToVerboseLogFile(
-									"LOG: Caught: Folder exists",
-								);
-							}
-						}
+						var file = await getFile(this.settings.accessToken, id, dFile);
+						let isBinary =
+							file[0].split(".")[file[0].split(".").length - 1] !=
+							"md";
 						try {
 							await this.app.vault.createBinary(file[0], file[1]);
+							if (isBinary) {
+								let safeFilename = file[0].replace(/\//g, ".");
+								try {
+									await this.app.vault.create(
+										`${ATTACHMENT_TRACKING_FOLDER_NAME}/${safeFilename}`,
+										"",
+									);
+								} catch (err) {
+									await this.writeToVerboseLogFile(
+										`LOG: ${ATTACHMENT_TRACKING_FOLDER_NAME}/${safeFilename} could not be created`,
+									);
+									await this.writeToErrorLogFile(err);
+								}
+							}
 						} catch (err) {
 							await this.writeToVerboseLogFile(
-								"LOG: Couldn't create file and folder, details of path, file[0]: " +
-									path +
-									", " +
-									file[0],
+								"LOG: Couldn't create file directly, trying to create folder first...",
 							);
-							await this.writeToErrorLogFile(err);
-							await this.notifyError();
+							var path = file[0].split("/").slice(0, -1).join("/");
+
+							try {
+								await this.app.vault.createFolder(path);
+							} catch (err) {
+								if (err.message.includes("Folder already exists")) {
+									await this.writeToVerboseLogFile(
+										"LOG: Caught: Folder exists",
+									);
+								}
+							}
+							try {
+								await this.app.vault.createBinary(file[0], file[1]);
+							} catch (err) {
+								await this.writeToVerboseLogFile(
+									"LOG: Couldn't create file and folder, details of path, file[0]: " +
+										path +
+										", " +
+										file[0],
+								);
+								await this.writeToErrorLogFile(err);
+								await this.notifyError();
+							}
 						}
+						
+						let currentProgress = alreadyDownloaded + toDownload.indexOf(dFile) + 1;
+						new Notice(
+							`Sync progress: ${currentProgress}/${totalCloudFiles} files`,
+							1000,
+						);
+					} catch (fileErr) {
+						await this.writeToErrorLogFile(fileErr);
+						new Notice(`Failed to sync ${dFile}. Skipping...`, 2000);
 					}
-					new Notice(
-						`Downloaded ${toDownload.indexOf(dFile) + 1}/${
-							toDownload.length
-						} files`,
-						1000,
-					);
 				}
 				new Notice("Download complete :)", 2500);
 				// new Notice(
@@ -906,13 +915,13 @@ export default class driveSyncPlugin extends Plugin {
 						return;
 					}
 					// new Notice("Downloading updated file!");
-					var id;
+					var id: string = "";
 					this.settings.filesList.map((fileItem: any) => {
 						if (fileItem.name == file.path) {
 							id = fileItem.id;
 						}
 					});
-					var res = await getFile(this.settings.accessToken, id);
+					var res = await getFile(this.settings.accessToken, id, file.path);
 					// console.log("here", this.writingFile, res);
 
 					if (
@@ -932,7 +941,7 @@ export default class driveSyncPlugin extends Plugin {
 							//console.log(path);
 
 							await this.app.vault.createFolder(path);
-							await this.app.vault.modifyBinary(res[0], res[1]);
+							await this.app.vault.createBinary(res[0], res[1]);
 						});
 					// new Notice("Sync complete :)");
 				}

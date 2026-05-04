@@ -243,7 +243,13 @@ const getFoldersList = async (accessToken, vault = null) => {
 		throw newError("getFoldersList", err);
 	}
 };
-const getFile = async (accessToken, fileId) => {
+/**
+ * @param {string} accessToken
+ * @param {string} fileId
+ * @param {string} [fileName]
+ * @returns {Promise<[string, ArrayBuffer]>}
+ */
+const getFile = async (accessToken, fileId, fileName) => {
 	try {
 		const responseBuffer = await requestUrl({
 			url:
@@ -256,14 +262,20 @@ const getFile = async (accessToken, fileId) => {
 				Authorization: `Bearer ${accessToken}`,
 			},
 		});
-		const responseName = await requestUrl({
-			url: "https://www.googleapis.com/drive/v3/files/" + fileId,
-			method: "GET",
-			headers: {
-				Authorization: `Bearer ${accessToken}`,
-			},
-		});
-		return [responseName.json.name, responseBuffer.arrayBuffer];
+		
+		let name = fileName;
+		if (!name) {
+			const responseName = await requestUrl({
+				url: "https://www.googleapis.com/drive/v3/files/" + fileId,
+				method: "GET",
+				headers: {
+					Authorization: `Bearer ${accessToken}`,
+				},
+			});
+			name = responseName.json.name;
+		}
+		
+		return [name, responseBuffer.arrayBuffer];
 	} catch (err) {
 		console.log(err);
 		throw newError("getFile", err);
