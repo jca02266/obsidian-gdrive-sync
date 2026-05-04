@@ -1,5 +1,9 @@
 # Obsidian Google Drive Sync Plugin
 
+> [!NOTE]  
+> 🇯🇵 **[日本語のドキュメント（このフォーク版についての解説・変更点）はこちら](README.ja.md)**
+
+
 ![GitHub last commit](https://img.shields.io/github/last-commit/stravo1/obsidian-gdrive-sync)
 ![GitHub Release Date](https://img.shields.io/github/release-date/stravo1/obsidian-gdrive-sync)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/stravo1/obsidian-gdrive-sync)
